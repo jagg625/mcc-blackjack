@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mcc.blackjack.baraja;
+package mcc.Juegosdecartas.baraja;
+
+import java.util.ArrayList;
 
 /**
  *
@@ -13,18 +15,34 @@ public class Carta {
     
     private TipoCarta tipoCarta;
     private TipoSimbolo tipoSimbolo;
-    private Integer valorActual;
     private Boolean esOcupada;
+    private Integer valorActual;
+    private ArrayList<Integer> posiblesValores;
     
     public Carta(TipoCarta tipoCarta,
             TipoSimbolo tipoSimbolo){
        
         this.tipoCarta = tipoCarta;
         this.tipoSimbolo = tipoSimbolo;
-        this.valorActual = tipoCarta.getValorDefault();
         this.esOcupada = Boolean.FALSE;
     }
 
+    public ArrayList<Integer> getPosiblesValores() {
+        return posiblesValores;
+    }
+
+    public void setPosiblesValores(ArrayList<Integer> posiblesValores) {
+        this.posiblesValores = posiblesValores;
+    }
+
+    public Integer getValorActual() {
+        return valorActual;
+    }
+
+    public void setValorActual(Integer valorActual) {
+        this.valorActual = valorActual;
+    }
+    
     public TipoCarta getTipoCarta() {
         return tipoCarta;
     }
@@ -40,30 +58,13 @@ public class Carta {
     public void setTipoSimbolo(TipoSimbolo tipoSimbolo) {
         this.tipoSimbolo = tipoSimbolo;
     }
-
-    public Integer getValorActual() {
-        return valorActual;
-    }
-
-    public void setValorActual(Integer valorActual) {
-        this.valorActual = valorActual;
-    }
-
+    
     public Boolean getEsOcupada() {
         return esOcupada;
     }
 
     public void setEsOcupada(Boolean esOcupada) {
         this.esOcupada = esOcupada;
-    }
-    
-   public Boolean tienePosiblesValores(){
-        
-        if (this.tipoCarta.getPosiblesValores().length < 2) {
-            return false;
-        }
-        
-        return true;
     }
     
     @Override
@@ -77,22 +78,6 @@ public class Carta {
         sbCarta.append(this.getTipoSimbolo().getNombre());
         sbCarta.append(" color : ");
         sbCarta.append(this.getTipoSimbolo().getColor());
-        sbCarta.append(" valorActual : ");
-        sbCarta.append(this.getValorActual());
-        sbCarta.append(" posiblesValores : ");
-        
-        Integer posiblesValoresIteracion = 1;
-        int[] posiblesValores = this.getTipoCarta().getPosiblesValores();
-        for (Integer posiblesValore : posiblesValores) {
-            
-            sbCarta.append(posiblesValore);
-            
-            if (posiblesValoresIteracion != posiblesValores.length) 
-                sbCarta.append(",");
-            
-            posiblesValoresIteracion++;    
-        }
-        
         sbCarta.append(" esOcupada : ");
         sbCarta.append(this.getEsOcupada());
         
