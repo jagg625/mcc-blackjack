@@ -7,9 +7,6 @@ package mcc.Juegosdecartas;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import mcc.Juegosdecartas.baraja.Baraja;
-import mcc.Juegosdecartas.baraja.Barajeable;
-import mcc.Juegosdecartas.factories.BarajaFactory;
 import mcc.Juegosdecartas.factories.JuegoFactory;
 import mcc.Juegosdecartas.factories.TipoJuego;
 

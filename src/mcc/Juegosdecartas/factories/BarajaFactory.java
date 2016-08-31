@@ -19,7 +19,7 @@ public class BarajaFactory {
         
         switch(tipoJuego){
             case BLACKJACK:
-                baraja = BarajaBlackJack.getInstancia();
+                baraja = new BarajaBlackJack();
                 
             break;
             default:

@@ -23,17 +23,8 @@ public class BarajaBlackJack extends Baraja implements Barajeable {
     private final ArrayList<Carta> mazoDeCartas;
     Baraja juego = null;
 
-    private BarajaBlackJack() {
+    public BarajaBlackJack() {
         this.mazoDeCartas = generarMazoDeCartas();
-    }
-
-    public static BarajaBlackJack getInstancia() {
-
-        if (instancia == null) {
-            instancia = new BarajaBlackJack();
-        }
-
-        return instancia;
     }
 
     @Override
@@ -57,7 +48,7 @@ public class BarajaBlackJack extends Baraja implements Barajeable {
             for (TipoCarta tipoCarta : tiposDeCartas) {
 
                 carta = new Carta(tipoCarta, tipoSimbolo);
-
+                
                 getValoresCarta(carta, tipoCarta);
 
                 nuevoMazoDeCartas.add(carta);
@@ -183,6 +174,17 @@ public class BarajaBlackJack extends Baraja implements Barajeable {
             case NUMERO_9:
 
                 valorDefault = 9;
+
+                posiblesValores = new ArrayList<>();
+                posiblesValores.add(valorDefault);
+
+                carta.setValorActual(valorDefault);
+                carta.setPosiblesValores(posiblesValores);
+
+                break;
+            case NUMERO_10:
+
+                valorDefault = 10;
 
                 posiblesValores = new ArrayList<>();
                 posiblesValores.add(valorDefault);
