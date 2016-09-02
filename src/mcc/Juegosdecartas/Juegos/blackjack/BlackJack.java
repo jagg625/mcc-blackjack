@@ -22,8 +22,8 @@ import mcc.Juegosdecartas.factories.TipoJuego;
 public class BlackJack extends JuegoDeCartas {
 
     private final Integer NUM_MAX_JUGADORES = 7;
-    private final Integer BLACKJACK = 21;
-    private final String SEPARADOR_PALABRAS = " ********** ";
+    public static final Integer PUNTUACION_GANA = 21;
+    public static final String divisor = "-----------------------------------------------------------------------------------------------------------------------------";
     private Croupier croupier;
     private ArrayList<JugadorBlackJack> jugadores;
 
@@ -32,44 +32,43 @@ public class BlackJack extends JuegoDeCartas {
 
         Integer numeroDeJugadores;
         Boolean otroJuego = false;
-        System.out.println("**********BlackJack**********");
 
         try {
+
+            imprimirMensaje("Inicia el juego BlackJack");
+            /*Preguntamos por el numero de jugadores que participaran */
+            numeroDeJugadores = obtenerNumeroJugadores();
+            jugadores = obtenerJugadores(numeroDeJugadores);
+            croupier = new Croupier();
+            Baraja baraja = BarajaFactory.crear(TipoJuego.BLACKJACK);
+            croupier.setBaraja(baraja);
 
             //Ciclo del juego
             do {
 
-                imprimirMensaje("Inicia el juego BlackJack");
-
-                /*Preguntamos por el numero de jugadores que participaran */
-                numeroDeJugadores = obtenerNumeroJugadores();
-                jugadores = obtenerJugadores(numeroDeJugadores);
-
-                Baraja baraja = BarajaFactory.crear(TipoJuego.BLACKJACK);
-                croupier = new Croupier(baraja);
-
-                ArrayList<Apuesta> apuestas = obtenerApuestas();
-                this.croupier.setApuestas(apuestas);
-
-                imprimirMensaje("Antes de iniciar el reparto de cartas el Crupier barajea la baraja");
-
+                imprimirMensaje("Apuestas de los jugadores");
+                obtenerApuestas();
+                imprimirMensaje("INFORMACIÓN DE LOS JUGADORES");
+                imprimirJugadores();
+                imprimirMensaje("Antes de iniciar el reparto de cartas el Croupier barajar las cartas");
                 this.croupier.barajarBaraja();
-
                 /*Se inicia el proceso para repartir cartas*/
-                System.out.println("********** Inicia el reparto de cartas **********");
-
-                System.out.println("********** Repartiendo cartas a los juegadores **********");
-
-                //imprimirNombresDeJugadores();
+                imprimirMensaje("Inicia el reparto de cartas a los jugadores...");
                 repartirCartas();
-
-                System.out.println("********** Las cartas fueron asignadas de la siguiente manera **********");
-
+                registrarQuienTieneBlackJack();
+                imprimirMensaje("Las cartas fueron asignadas de la siguiente manera");
                 imprimirCartasTodosJugadores();
-
                 partidaPorJugador();
-
+                imprimirMensaje("Las cartas de los jugadores quedaron de la siguiente manera ");
+                imprimirCartasTodosJugadores();
+                decidirGanadores();
+                imprimirMensaje("RESULTADOS");
+                imprimirJugadores();
                 otroJuego = otroJuego();
+
+                if (otroJuego) {
+                    reiniciarDatosJugador();
+                }
 
             } while (otroJuego);
         } catch (Exception e) {
@@ -82,10 +81,11 @@ public class BlackJack extends JuegoDeCartas {
         Boolean esNumeroDeJugadoresCorrecto = Boolean.FALSE;
         do {
 
-            System.out.println(SEPARADOR_PALABRAS + "Ingresa el numero de jugadores" + SEPARADOR_PALABRAS);
+            System.out.print("Ingresa el numero de jugadores : ");
             numeroDeJugadores = pedirEntradaDelTeclado();
 
-            if (numeroDeJugadores.matches("\\d*")) {
+            if (numeroDeJugadores.compareTo("") != 0
+                    && numeroDeJugadores.matches("\\d*")) {
 
                 Integer numeroJugadoresInt = Integer.valueOf(numeroDeJugadores);
 
@@ -109,8 +109,6 @@ public class BlackJack extends JuegoDeCartas {
             jugadores.add(jugadorBlackJack);
         }
 
-        /* Se agrega el crupier como jugador ya que tambien es un jugador */
-        //jugadores.add(this.croupier);
         return jugadores;
     }
 
@@ -118,7 +116,7 @@ public class BlackJack extends JuegoDeCartas {
         JugadorBlackJack jugadorBlackJack = null;
         String nombreJugador = null;
 
-        System.out.println("Ingrese el nombre del jugador # " + numeroJugador);
+        System.out.print("Ingrese el nombre del jugador # " + numeroJugador + " : ");
         nombreJugador = pedirEntradaDelTeclado();
 
         jugadorBlackJack = new JugadorBlackJack(nombreJugador, numeroJugador);
@@ -127,8 +125,15 @@ public class BlackJack extends JuegoDeCartas {
     }
 
     private void repartirCartas() throws Exception {
-        for (int ronda = 1; ronda <= 2; ronda++) {
-            this.croupier.repartirCartas(jugadores);
+        
+        final Integer RONDAS = 2;
+        Boolean esUltimaRonda = false;
+        
+        
+        for (int ronda = 1; ronda <= RONDAS; ronda++) {
+            esUltimaRonda = ronda == RONDAS;
+            
+            this.croupier.repartirCartas(jugadores, esUltimaRonda);
         }
     }
 
@@ -136,7 +141,7 @@ public class BlackJack extends JuegoDeCartas {
         StringBuilder sb = new StringBuilder();
 
         for (JugadorBlackJack jugador : jugadores) {
-            sb.append(SEPARADOR_PALABRAS);
+            sb.append(divisor);
             sb.append(jugador.getNombre());
         }
 
@@ -144,50 +149,86 @@ public class BlackJack extends JuegoDeCartas {
     }
 
     private void imprimirCartasTodosJugadores() {
-        StringBuilder sb = new StringBuilder();
-
+        imprimirEncabezadoCartas();
         for (JugadorBlackJack jugador : jugadores) {
-            System.out.println(jugador.getNombre());
             imprimirCartasJugador(jugador);
         }
-
-        System.out.println(this.croupier.getNombre());
         imprimirCartasJugador(this.croupier);
     }
 
-    private void imprimirMensaje(String mensaje) {
-        System.out.println("--------------------------------------------------------------------------------");
-        System.out.println(mensaje);
-        System.out.println("--------------------------------------------------------------------------------");
+    public void imprimirEncabezadoCartas() {
+        System.out.println(divisor);
+        System.out.printf("%-20s %-20s %-20s %-20s %-20s %n", "Jugador", "Tipo carta", "Simbolo carta", "Color", "Valores");
+        System.out.println(divisor);
     }
 
-    private void partidaPorJugador() {
-        
+    private void imprimirMensaje(String mensaje) {
+        System.out.println(divisor);
+        System.out.println(mensaje);
+        System.out.println(divisor);
+    }
+
+    private void partidaPorJugador() throws Exception {
+
         for (JugadorBlackJack jugador : jugadores) {
-            
-            ArrayList<Integer> combinacionesCartas = jugador.getCombinacionesCartas();
-            
-            if (combinacionesCartas.contains(BLACKJACK)) {
-                 String mensaje = "El siguiente tu " + jugador.getNombre() + " sus cartas son : ";
+
+            String mensaje = "El siguiente turno es del jugador " + jugador.getNombre() + " sus cartas son : ";
+
+            Boolean tieneBlackJack = this.croupier.tieneBlackJack(jugador);
+            if (tieneBlackJack) {
+                mensaje = "El jugador " + jugador.getNombre() + " tiene BlackJack sus cartas son : ";
             }
-            
-             String mensaje = "El siguiente turno es del jugador " + jugador.getNombre() + " sus cartas son : ";
 
             imprimirMensaje(mensaje);
+            imprimirEncabezadoCartas();
             imprimirCartasJugador(jugador);
+            ArrayList<Integer> combinacionesCartas = this.croupier.getCombinacionesCartasJugador(jugador);
+            System.out.println("");
+            System.out.println("Combinaciones entre cartas : " + combinacionesCartas);
 
-            System.out.println("Combinaciones : " + combinacionesCartas);
-
-            Integer opcionJugador = obtenerOpcionJugador();
-
-            switch (opcionJugador) {
-                case 1:
-                    
-                    break;
-                case 2:
-                    break;
+            if (tieneBlackJack) {
+                continue;
             }
+
+            Boolean continuar = true;
+
+            do {
+
+                Integer opcionJugador = obtenerOpcionJugador();
+                switch (opcionJugador) {
+                    case 1:
+
+                        if (this.croupier.puedeJugadorTomarOtraCarta(jugador)) {
+                            this.croupier.darCarta(jugador);
+                        }
+                        break;
+                    case 2:
+                        continuar = false;
+                        break;
+                }
+
+                imprimirMensaje("Las cartas del jugador " + jugador.getNombre() + " quedaron de la siguiente manera");
+                imprimirEncabezadoCartas();
+                imprimirCartasJugador(jugador);
+                combinacionesCartas = this.croupier.getCombinacionesCartasJugador(jugador);
+                System.out.println("Combinaciones : " + combinacionesCartas);
+
+                if (this.croupier.pierdeAutomaticamenteJugador(jugador) || this.croupier.jugadorTieneTodasCombinaciones21(jugador)) {
+                    continuar = false;
+                }
+
+            } while (continuar);
         }
+
+        this.croupier.logicaCroupierDebePedirCarta();
+
+        imprimirMensaje("Las cartas del jugador " + this.croupier.getNombre() + " quedaron de la siguiente manera");
+        imprimirEncabezadoCartas();
+        imprimirCartasJugador(this.croupier);
+        ArrayList<Integer> combinacionesCartas = this.croupier.getCombinacionesCartasJugador(this.croupier);
+        System.out.println("");
+        System.out.println("Combinaciones entre cartas : " + combinacionesCartas);
+
     }
 
     private String pedirEntradaDelTeclado() {
@@ -199,10 +240,13 @@ public class BlackJack extends JuegoDeCartas {
         String opcionJugador = "";
         Boolean esOpcionCorrecta = Boolean.FALSE;
         do {
-            imprimirMensaje("Elija una opcion : \n 1 - Otra carta \n 2 - Parar \n 3 - Ver cartas");
+
+            imprimirMensaje("Elija una opción para seguir jugando ");
+            System.out.print("1 - Otra carta 2 - Parar : ");
             opcionJugador = pedirEntradaDelTeclado();
 
-            if (opcionJugador.matches("\\d*")) {
+            if (opcionJugador.compareTo("") != 0
+                    && opcionJugador.matches("\\d*")) {
 
                 Integer opcionJugadorInt = Integer.valueOf(opcionJugador);
 
@@ -217,37 +261,22 @@ public class BlackJack extends JuegoDeCartas {
     }
 
     private void imprimirCartasJugador(JugadorBlackJack jugador) {
-        StringBuilder sb = new StringBuilder();
         ArrayList<Carta> cartas = jugador.getCartas();
 
         for (Carta carta : cartas) {
-            sb.append(carta.getTipoCarta().getNombre());
-            sb.append("-");
-            sb.append(carta.getTipoSimbolo().getNombre());
-            sb.append("-");
-            sb.append(carta.getTipoSimbolo().getColor());
-            sb.append(" Posibles valores : ");
-            sb.append(carta.getPosiblesValores());
-
-            System.out.println(sb.toString());
-            sb.delete(0, sb.length());
+            System.out.printf("%-20s %-20s %-20s %-20s %-20s %n", jugador.getNombre(), carta.getTipoCarta().getNombre(), carta.getTipoSimbolo().getNombre(), carta.getTipoSimbolo().getColor(), carta.getPosiblesValores());
         }
     }
 
-    private ArrayList<Apuesta> obtenerApuestas() {
-
-        ArrayList<Apuesta> apuestas = new ArrayList<>();
+    private void obtenerApuestas() {
         Apuesta apuesta = null;
 
         for (JugadorBlackJack jugador : jugadores) {
             Integer apuestaJugador = obtenerApuestaJugador(jugador);
 
             apuesta = new Apuesta(jugador.getIdJugador(), apuestaJugador);
-            apuestas.add(apuesta);
-
+            this.croupier.setApuesta(apuesta);
         }
-
-        return apuestas;
     }
 
     private Integer obtenerApuestaJugador(JugadorBlackJack jugador) {
@@ -256,16 +285,18 @@ public class BlackJack extends JuegoDeCartas {
         String mensaje = "Jugador " + jugador.getNombre() + " ingresa tu apuesta : ";
 
         do {
-            System.out.println(mensaje);
+            System.out.print(mensaje);
             apuestaJugador = pedirEntradaDelTeclado();
 
-            if (apuestaJugador.matches("\\d*")) {
+            if (apuestaJugador.compareTo("") != 0
+                    && apuestaJugador.matches("\\d*")) {
 
                 Integer apuestaJugadorInt = Integer.valueOf(apuestaJugador);
                 Integer disponibleJugador = jugador.getDineroDisponible();
                 Integer disponibleMenosApuesta = disponibleJugador - apuestaJugadorInt;
+                Integer totalApuestasJugadores = this.croupier.getTotalApuestasTodosLosJugadores() + apuestaJugadorInt;
 
-                if (apuestaJugadorInt >= 1 && disponibleMenosApuesta >= 0) {
+                if (apuestaJugadorInt >= 0 && disponibleMenosApuesta >= 0 && totalApuestasJugadores <= this.croupier.getDineroDisponible()) {
                     esApuestaCorrecta = Boolean.TRUE;
                 }
 
@@ -278,13 +309,71 @@ public class BlackJack extends JuegoDeCartas {
     }
 
     private Boolean otroJuego() {
-        imprimirMensaje("Ingrese \"s\" para inicar otro juego, ingrese cualquier otra tecla para terminar.");
-        String otroJuego = pedirEntradaDelTeclado();
 
-        if (otroJuego.toUpperCase().compareTo("S") == 0) {
-            return Boolean.TRUE;
+        Boolean opcionCorrecta = false;
+        Boolean otroJuego = false;
+        String opcionOtroJuego;
+
+        do {
+            imprimirMensaje("Ingrese \"S\" para inicar otro juego, y \"Q\" para salir.");
+            opcionOtroJuego = pedirEntradaDelTeclado();
+
+            if (opcionOtroJuego.toUpperCase().compareTo("S") == 0) {
+                otroJuego = Boolean.TRUE;
+            } else if (opcionOtroJuego.toUpperCase().compareTo("Q") == 0) {
+                otroJuego = Boolean.FALSE;
+            }
+
+        } while (opcionCorrecta);
+
+        return otroJuego;
+    }
+
+    private void registrarQuienTieneBlackJack() {
+        this.croupier.registrarQuienTieneBlackJack(jugadores);
+    }
+
+    private void imprimirJugadores() {
+
+        StringBuilder sb = new StringBuilder();
+
+        System.out.printf("%-20s %-20s %-20s %-20s %-20s %n", "Nombre", "Disponible", "Juegos ganados", "Juegos perdidos", "Juegos empate");
+        System.out.println(divisor);
+
+        for (JugadorBlackJack jugador : jugadores) {
+            System.out.printf("%-20s %-20s %-20s %-20s %-20s %n",
+                    jugador.getNombre(),
+                    jugador.getDineroDisponible(),
+                    jugador.getJuegosGanados(),
+                    jugador.getJuegosPerdidos(),
+                    jugador.getJuegosEmpate());
         }
 
-        return Boolean.FALSE;
+        System.out.printf("%-20s %-20s %-20s %-20s %-20s %n",
+                this.croupier.getNombre(),
+                this.croupier.getDineroDisponible(),
+                this.croupier.getJuegosGanados(),
+                this.croupier.getJuegosPerdidos(),
+                this.croupier.getJuegosEmpate());
+
+        System.out.println(divisor);
+
+    }
+
+    private void reiniciarDatosJugador() throws Exception {
+        for (JugadorBlackJack jugador : jugadores) {
+            jugador.borrarCartas();
+        }
+
+        this.croupier.borrarCartas();
+        this.croupier.borrarIdsJugadoresConBlackJack();
+        this.croupier.borrarApuesas();
+
+        Baraja baraja = BarajaFactory.crear(TipoJuego.BLACKJACK);
+        croupier.setBaraja(baraja);
+    }
+
+    private void decidirGanadores() {
+        this.croupier.decidirGanadores(this.jugadores);
     }
 }

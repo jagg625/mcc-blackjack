@@ -24,7 +24,6 @@ public class Main {
         try {
             JuegoDeCartas juego = JuegoFactory.crear(TipoJuego.BLACKJACK);
             juego.iniciar();
-            
         } catch (Exception ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }

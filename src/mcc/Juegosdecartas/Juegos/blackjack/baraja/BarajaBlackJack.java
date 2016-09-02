@@ -19,9 +19,7 @@ import mcc.Juegosdecartas.baraja.Baraja;
  */
 public class BarajaBlackJack extends Baraja implements Barajeable {
 
-    private static BarajaBlackJack instancia;
     private final ArrayList<Carta> mazoDeCartas;
-    Baraja juego = null;
 
     public BarajaBlackJack() {
         this.mazoDeCartas = generarMazoDeCartas();
